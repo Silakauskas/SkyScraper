@@ -13,7 +13,29 @@ import json
 import requests
 from time import gmtime, strftime
 
+import os
+import json
+import csv
+
 from bs4 import BeautifulSoup
+
+DATA_PATH = "raw\\NBA\\"
+RESULTS_PATH = "logs\\NBA\\"
+TRACK_ENDED = True
+odds = {}
+finished = {}
+
+def doesEventLogFileExist(event):
+    return (getEventFileName(event) in os.listdir(RESULTS_PATH))
+
+def getEventFileName(event):
+    return str(event)+".csv"
+
+def createNewEventLogFile(event):
+    with open(RESULTS_PATH+getEventFileName(event['id']), 'w') as outcsv: # create this file
+        writer = csv.writer(outcsv)
+        writer.writerow(["Date", event["teams"]["home"], "X", event["teams"]["away"], event['id']])
+        outcsv.close()
 
 headers = {
          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0) Gecko/20100101 Firefox/64.0',
@@ -23,25 +45,33 @@ headers = {
 #ORAKULAS - NBA
 response = requests.get(url="https://nodejs08.tglab.io/cache/3/lt/lt/394/prematch-by-championship.json",
                         headers=headers)
-                        
-print(response.headers, response.status_code)
+
 json_object = response.json()
-result = {}
-print("  ",json_object['events'][0]['tournament_name'],"  ")
 
-for event in json_object['events']:
-        for odd_id in event['main_odds']['main'].items():
-            if odd_id[1]['name'] == '1':
-                print(event['teams']['home'], odd_id[1]['odd_value'])
-            if odd_id[1]['name'] == 'X':
-                print("X", odd_id[1]['odd_value'])
-            if odd_id[1]['name'] == '2':
-                print(event['teams']['away'], odd_id[1]['odd_value'])
-        print(" ")
+############ SAVE RAW FILE
+# TODO:  Check if tournament is not null
+raw_filename = 'cbet_' + strftime("%m_%d_%H_%M", gmtime()) + '.json'
 
-
-filename = 'data/'+json_object['events'][0]['tournament_name']+'/' + 'cbet_' + strftime("%m_%d_%H_%M", gmtime()) + '.json'
-
-
-with open(filename, 'w') as outfile:
+with open('raw/'+json_object['events'][0]['tournament_name']+'/' + raw_filename, 'w') as outfile:
     json.dump(json_object, outfile, indent=4)
+   
+for event in json_object['events']:
+    if not doesEventLogFileExist(event['id']):
+        print("Log file for event",event['id'],"does not exist. Creating...")
+        createNewEventLogFile(event)
+    
+    csv_row = [raw_filename]
+    
+    for odd_id in event['main_odds']['main'].items():
+        csv_row.append(odd_id[1]['odd_value'])
+    
+    csv_row.append(event['id'])
+    
+    with open(RESULTS_PATH + getEventFileName(event['id']), 'a') as outcsv:  # create this file
+        writer = csv.writer(outcsv)
+        writer.writerow(csv_row)
+
+
+
+
+
