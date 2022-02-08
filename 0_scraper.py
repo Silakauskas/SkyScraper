@@ -38,7 +38,7 @@ def getEventFileName(event):
 def createNewEventLogFile(event):
     with open(RESULTS_PATH+getEventFileName(event['id']), 'w') as outcsv: # create this file
         writer = csv.writer(outcsv)
-        writer.writerow(["Date", unidecode(event["teams"]["home"]), "X", unidecode(event["teams"]["away"]), event['id']])
+        writer.writerow(["Date", unidecode(event["teams"]["home"]), "X", unidecode(event["teams"]["away"]), event['date_start']])
         outcsv.close()
 
 headers = {
@@ -74,8 +74,9 @@ for event in json_object['events']:
         csv_row.append(odd_id[1]['odd_value'])
     
     csv_row.append(event['id'])
+    csv_row.append(event['date_start'])
     
-    with open(RESULTS_PATH + getEventFileName(event['id']), 'a') as outcsv:  # create this file
+    with open(RESULTS_PATH + getEventFileName(event['id']), 'a', newline='') as outcsv:  # create this file
         writer = csv.writer(outcsv)
         writer.writerow(csv_row)
 
