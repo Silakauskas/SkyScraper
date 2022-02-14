@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 # Import unidecode module from unidecode
 from unidecode import unidecode
 
-sports = "ICE_HOCKEY"
+sports = "SOMETHING"
 
 DATA_PATH = "raw\\"+sports+"\\"
 RESULTS_PATH = "logs\\"+sports+"\\"
@@ -40,6 +40,11 @@ def createNewEventLogFile(event):
         writer = csv.writer(outcsv)
         writer.writerow(["Date", unidecode(event["teams"]["home"]), "X", unidecode(event["teams"]["away"]), event['date_start']])
         outcsv.close()
+
+##### Check if directories exist
+if not os.path.exists(DATA_PATH):
+    os.makedirs(DATA_PATH)
+    os.makedirs(RESULTS_PATH)
 
 headers = {
          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.81 Safari/537.36',
