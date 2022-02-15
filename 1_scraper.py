@@ -21,7 +21,7 @@ from bs4 import BeautifulSoup
 # Import unidecode module from unidecode
 from unidecode import unidecode
 
-sports = "ICE_HOCKEY"
+sports = "BAFTA"
 
 DATA_PATH = "raw\\"+sports+"\\"
 RESULTS_PATH = "logs\\"+sports+"\\"
@@ -40,26 +40,27 @@ def createNewEventLogFile(event):
         writer = csv.writer(outcsv)
         writer.writerow(["Date", unidecode(event["teams"]["home"]), "X", unidecode(event["teams"]["away"]), event['date_start']])
         outcsv.close()
-
+        
+def createNewEventLogFile(name):
+    with open(RESULTS_PATH+getEventFileName(name), 'w') as outcsv: # create this file
+        writer = csv.writer(outcsv)
+        outcsv.close()
+        
 ##### Check if directories exist
 if not os.path.exists(DATA_PATH):
-    print("Could not find directory.. Creating..")
     os.makedirs(DATA_PATH)
     os.makedirs(RESULTS_PATH)
 
 headers = {
-         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.81 Safari/537.36',
+         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36',
          'Content-Type': 'application/json'
 }
 
-#ORAKULAS - NBA
-#response = requests.get(url="https://nodejs08.tglab.io/cache/3/lt/lt/394/prematch-by-championship.json",
-#response = requests.get(url="https://nodejs08.tglab.io/cache/5/lt/lt/Europe-Vilnius/events-by-path.json?path=futbolas%7Cpasaulis%7Cpasaulio-cempionatas-2022-kvalifikacija-europa&hidenseek=9a78299aed2ce1444f657aab7fe9945bde4047b3",
-response = requests.get(url="https://nodejs08.tglab.io/cache/3/lt/lt/14348/prematch-by-tournaments.json?hidenseek=82d1fedcdfd03ccf9504260c58e2e7b1830b029e",
+#CBET - BAFTA
+response = requests.get(url="https://nodejs08.tglab.io/cache/3/lt/lt/20228/prematch-by-tournaments.json?hidenseek=69815cb5ce8fb6f651be2e741a91a8c48695b945",
                         headers=headers)
 
 json_object = response.json()
-
 
 ############ SAVE RAW FILE
 # TODO:  Check if tournament is not null
@@ -67,24 +68,21 @@ raw_filename = 'cbet_' + strftime("%m_%d_%H_%M", gmtime()) + '.json'
 
 print("Scraping "+sports+"...")
 
-#with open('raw/'+json_object['events'][0]['tournament_name']+'/' + raw_filename, 'w') as outfile:
 with open("raw/"+sports+"/" + raw_filename, 'w') as outfile:
     json.dump(json_object, outfile, indent=4)
    
-for event in json_object['events']:
-    if not doesEventLogFileExist(event['id']):
-        print("Log file for event",event['id'],"does not exist. Creating...")
-        createNewEventLogFile(event)
+for event in json_object['events'][0]['main_odds']['outright']['custom'].values():
+    if not doesEventLogFileExist(sports):
+        print("Log file for event",sports,"does not exist. Creating...")
+        createNewEventLogFile(sports)
+        
+    csv_row = [strftime("%m_%d_%H_%M", gmtime())]
+    csv_row.append(unidecode(event['name']))
+    csv_row.append(unidecode(event['team_name']))
+    csv_row.append(unidecode(event['odd_expr']))
+    csv_row.append(event['odd_value'])
     
-    csv_row = [raw_filename]
-    
-    for odd_id in event['main_odds']['main'].items():
-        csv_row.append(odd_id[1]['odd_value'])
-    
-    csv_row.append(event['id'])
-    csv_row.append(event['date_start'])
-    
-    with open(RESULTS_PATH + getEventFileName(event['id']), 'a', newline='') as outcsv:  # create this file
+    with open(RESULTS_PATH + getEventFileName(sports), 'a', newline='') as outcsv:  # create this file
         writer = csv.writer(outcsv)
         writer.writerow(csv_row)
 
