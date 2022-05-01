@@ -37,7 +37,7 @@ DEVELOPER_KEY = "AIzaSyBlELBZq_ZCHo6-C1cCDklA1V5dal7qQPo"
 youtube = googleapiclient.discovery.build(
         api_service_name, api_version, developerKey = DEVELOPER_KEY)
 
-resp = requests.get(url="https://www.googleapis.com/youtube/v3/search?order=date&part=snippet&channelId=UCRpjHHu8ivVWs73uxHlWwFA&maxResults=60&key=AIzaSyBlELBZq_ZCHo6-C1cCDklA1V5dal7qQPo")
+resp = requests.get(url="https://www.googleapis.com/youtube/v3/search?order=date&part=snippet&channelId=UCRpjHHu8ivVWs73uxHlWwFA&maxResults=100&key=AIzaSyBlELBZq_ZCHo6-C1cCDklA1V5dal7qQPo")
 
 r = resp.text.encode('utf8').decode('ascii', 'ignore')
 print(resp.status_code)
@@ -47,7 +47,7 @@ print(strftime("%m_%d_%H_%M", gmtime()))
 json_object = json.loads(r)
 for video in json_object["items"]:
     csv_row = [strftime("%m_%d_%H_%M", gmtime())]
-    if "2022" in video["snippet"]["title"] and "videoId" in video["id"].keys():
+    if "2022" in video["snippet"]["title"] and "videoId" in video["id"].keys() and ("National" in video["snippet"]["title"] or "Official" in video["snippet"]["title"]):
         if video["id"]["videoId"] not in lines:
             AppVidIds = open('/home/ubuntu/vidIds.txt', 'a', newline = '')
             AppVidIds.writelines(video["id"]["videoId"]+"\n")
